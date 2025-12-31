@@ -1,0 +1,19 @@
+# Ignore build artifacts
+build/
+*.o
+*.bin
+*.iso
+*.img
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore editors
+.vscode/
+.idea/
+*.swp
+
+# Keep the directory structure but ignore content in distro (except gitkeep)
+distro/**/*
+!distro/boot/grub/grub.cfg
