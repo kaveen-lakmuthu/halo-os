@@ -1,7 +1,7 @@
 # Halo OS - Style Guide
 
-**Version:** 1.0
-**Enforcement:** Strict. Inconsistent code will be rejected during review.
+* **Version:** 1.0
+* **Enforcement:** Strict. Inconsistent code will be rejected during review.
 
 ---
 

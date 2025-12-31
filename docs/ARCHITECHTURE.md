@@ -1,8 +1,8 @@
 # Halo OS - Architecture Specification
 
-**Version:** 0.1 (Draft)
-**Target Platform:** x86_64 (Intel/AMD 64-bit)
-**Kernel Type:** Monolithic (Higher Half)
+* **Version:** 0.1 (Draft)
+* **Target Platform:** x86_64 (Intel/AMD 64-bit)
+* **Kernel Type:** Monolithic (Higher Half)
 
 ---
 

@@ -1,7 +1,7 @@
 # Halo OS - Development Tools
 
-**Host System:** Debian 13 (Trixie) or compatible Linux.
-**Target Architecture:** x86_64 (64-bit).
+* **Host System:** Debian 13 (Trixie) or compatible Linux.
+* **Target Architecture:** x86_64 (64-bit).
 
 ## 1. Required Packages
 Install the following dependencies to build the toolchain and the OS image:
