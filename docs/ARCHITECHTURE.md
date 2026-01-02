@@ -10,7 +10,7 @@
 Halo OS is a 64-bit UNIX-like operating system designed for deep educational value. It prioritises architectural clarity over commercial viability.
 * **Kernel:** Written in C11 (ISO/IEC 9899:2011) for transparency and direct hardware control.
 * **Userland:** Written in C++20 for robust abstraction in GUI and applications.
-* **License:** MIT / GPL (To be decided).
+* **License:** MIT.
 
 ## 2. Boot Process
 We utilise the **Multiboot2** protocol to maintain compatibility with both Legacy BIOS and UEFI hardware via GRUB.
