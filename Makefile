@@ -6,13 +6,14 @@ LD = x86_64-elf-ld
 ASM = nasm
 
 # Flags
-CFLAGS = -ffreestanding -mno-red-zone -m64 -mcmodel=large -Isrc/kernel/include -g -Wall -Wextra
-LDFLAGS = -n -nostdlib -T src/kernel/arch/x86_64/linker.ld
+CFLAGS = -ffreestanding -mno-red-zone -m32 -Isrc/kernel/include -g -Wall -Wextra
+# Force the 64-bit linker to output a 32-bit file
+LDFLAGS = -n -nostdlib -m elf_i386 -T src/kernel/arch/x86_64/linker.ld
 
 # Sources
 # Find all .c and .asm files in src/kernel
-C_SOURCES = $(shell find src/kernel -name "*.c")
-ASM_SOURCES = $(shell find src/kernel -name "*.asm")
+C_SOURCES = $(shell find src -name "*.c")
+ASM_SOURCES = $(shell find src -name "*.asm")
 
 # Objects
 OBJ = $(patsubst src/%.c, build/%.o, $(C_SOURCES)) \
@@ -36,10 +37,11 @@ build/%.o: src/%.c
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 # Assemble ASM
+# Assemble ASM as 32-bit ELF
 build/%.o: src/%.asm
 	@mkdir -p $(dir $@)
 	@echo "  ASM     $<"
-	@$(ASM) -f elf64 $< -o $@
+	@$(ASM) -f elf32 $< -o $@
 
 # Create ISO
 distro/halo-os.iso: build/kernel.bin

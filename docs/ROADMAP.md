@@ -4,6 +4,7 @@
 * [x] Setup Cross-Compiler and Build System (Make).
 * [x] Implement Multiboot2 Header.
 * [x] Initial 32-bit Trampoline (Entry Point).
+* [x] Implement VGA Driver and Text Mode Output.
 * [ ] Establish Higher Half Paging.
 * [ ] Enter 64-bit Long Mode.
 * [ ] **Milestone:** Kernel boots and prints to Framebuffer in 64-bit mode.

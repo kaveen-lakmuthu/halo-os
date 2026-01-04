@@ -2,7 +2,7 @@ global start
 extern kmain
 
 section .text
-bits 32     ; We are still in 32-bit Protected Mode!
+bits 32     ; Still in 32-bit Protected Mode!
 
 start:
     ; 1. Set up the Stack

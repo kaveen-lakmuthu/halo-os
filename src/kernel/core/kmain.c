@@ -1,18 +1,21 @@
-#include <stdint.h>
+#include "../drivers/vga.h"
 
-void kmain() {
-    // Pointer to Video Memory (VGA text mode)
-    volatile char* video_memory = (volatile char*) 0xb8000;
+void kmain(void) {
+    // 1. Clear the screen and setup variables
+    terminal_initialize();
 
-    // Print 'O' in Green
-    video_memory[0] = 'O';
-    video_memory[1] = 0x02; // 0x02 = Green on Black
-
-    // Print 'K' in Green
-    video_memory[2] = 'K';
-    video_memory[3] = 0x02;
+    // 2. Print the first message
+    terminal_writestring("Hello, Halo OS!\n");
     
-    // Halt the CPU loop
+    // 3. Change colour and print status
+    terminal_setcolor(VGA_COLOR_GREEN);
+    terminal_writestring("[SUCCESS] Kernel initialized successfully.\n");
+    
+    // 4. Reset colour
+    terminal_setcolor(VGA_COLOR_LIGHT_GREY);
+    terminal_writestring("Waiting for commands...");
+
+    // Halt loop
     while(1) {
         __asm__("hlt");
     }
