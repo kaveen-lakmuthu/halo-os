@@ -6,8 +6,8 @@
 * [x] Initial 32-bit Trampoline (Entry Point).
 * [x] Implement VGA Driver and Text Mode Output.
 * [ ] Establish Higher Half Paging.
-* [ ] Enter 64-bit Long Mode.
-* [ ] **Milestone:** Kernel boots and prints to Framebuffer in 64-bit mode.
+* [x] Enter 64-bit Long Mode.
+* [x] **Milestone:** Kernel boots and prints to Framebuffer in 64-bit mode.
 
 ## Epoch 2: The Foundation (Memory & Interrupts)
 * [ ] Global Descriptor Table (GDT).
