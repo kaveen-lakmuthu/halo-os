@@ -10,7 +10,7 @@ static const size_t VGA_HEIGHT = 25;
 static size_t terminal_row;
 static size_t terminal_column;
 static uint8_t terminal_color;
-static uint16_t* terminal_buffer;
+static volatile uint16_t* terminal_buffer;
 
 // Helper: Combine a character and a colour into a 16-bit VGA entry
 static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {

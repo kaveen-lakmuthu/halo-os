@@ -1,14 +1,15 @@
 global start
 extern kmain
 
-section .text
-bits 32     ; Start in 32-bit mode
+; --- BOOT SECTION (Physical 1MB) ---
+section .boot
+bits 32
 
 start:
     ; 1. Setup Stack
     mov esp, stack_top
 
-    ; 2. Checks (Safety First)
+    ; 2. Checks
     call check_multiboot
     call check_cpuid
     call check_long_mode
@@ -20,14 +21,15 @@ start:
     ; 4. Load the 64-bit GDT
     lgdt [gdt64.pointer]
 
-    ; 5. The Long Jump
-    ; Jump to the "long_mode_start" label using the 64-bit code segment (gdt64.code)
+    ; 5. The Long Jump (Trampoline)
+    ; Jump to 'long_mode_start', which is NOW inside .boot (Low Memory)
+    ; This fits perfectly in a 32-bit jump instruction.
     jmp gdt64.code:long_mode_start
 
 ; --- Subroutines ---
 
 check_multiboot:
-    cmp eax, 0x36d76289    ; Magic number written by GRUB into EAX
+    cmp eax, 0x36d76289
     jne .no_multiboot
     ret
 .no_multiboot:
@@ -35,7 +37,6 @@ check_multiboot:
     jmp error
 
 check_cpuid:
-    ; Attempt to flip the ID bit in EFLAGS to check if CPUID is supported
     pushfd
     pop eax
     mov ecx, eax
@@ -54,13 +55,11 @@ check_cpuid:
     jmp error
 
 check_long_mode:
-    ; Check if CPU supports "Extended Processor Info"
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
     jb .no_long_mode
 
-    ; Check if Long Mode bit is set
     mov eax, 0x80000001
     cpuid
     test edx, 1 << 29
@@ -71,86 +70,69 @@ check_long_mode:
     jmp error
 
 setup_page_tables:
-    ; Map first P4 entry to P3 table
+    ; 1. Map L4[0] -> L3
     mov eax, page_table_l3
-    or eax, 0b11 ; Present + Writable
+    or eax, 0b11
     mov [page_table_l4], eax
 
-    ; Map first P3 entry to P2 table
+    ; 2. Map L3[0] -> L2 (For identity mapping 0-1GB)
     mov eax, page_table_l2
-    or eax, 0b11 ; Present + Writable
+    or eax, 0b11
     mov [page_table_l3], eax
 
-    ; Map P2 entries to 2MB physical pages (Identity Mapping)
-    mov ecx, 0         ; Counter
+    ; 3. Map L3[510] -> L2 (For Higher Half Kernel -2GB)  <-- ADD THIS BLOCK
+    mov eax, page_table_l2
+    or eax, 0b11
+    mov [page_table_l3 + 510 * 8], eax
+
+    ; 4. Map P2 entries (0-1GB physical)
+    mov ecx, 0
 .loop:
-    mov eax, 0x200000  ; 2MB size
+    mov eax, 0x200000
     mul ecx
-    or eax, 0b10000011 ; Present + Writable + Huge Page
+    or eax, 0b10000011
     mov [page_table_l2 + ecx * 8], eax
 
     inc ecx
-    cmp ecx, 512       ; Map 512 entries (1GB total)
+    cmp ecx, 512
     jne .loop
+
+    ; 5. Map L4[511] -> L3 (Recursive/High Mem)
+    mov eax, page_table_l3
+    or eax, 0b11
+    mov [page_table_l4 + 511 * 8], eax
+
     ret
 
 enable_paging:
-    ; 1. Pass P4 table location to CR3
     mov eax, page_table_l4
     mov cr3, eax
 
-    ; 2. Enable PAE (Physical Address Extension)
     mov eax, cr4
     or eax, 1 << 5
     mov cr4, eax
 
-    ; 3. Switch to Long Mode (EFER MSR)
     mov ecx, 0xC0000080
     rdmsr
     or eax, 1 << 8
     wrmsr
 
-    ; 4. Enable Paging (CR0)
     mov eax, cr0
     or eax, 1 << 31
     mov cr0, eax
     ret
 
 error:
-    ; Print "ERR: X" to screen (Video Memory hack for panic)
     mov dword [0xb8000], 0x4f524f45
     mov dword [0xb8004], 0x4f3a4f52
     mov dword [0xb8008], 0x4f204f20
     mov byte  [0xb800a], al
     hlt
 
-section .bss
-align 4096
-page_table_l4:
-    resb 4096
-page_table_l3:
-    resb 4096
-page_table_l2:
-    resb 4096
-stack_bottom:
-    resb 4096 * 4
-stack_top:
-
-section .rodata
-gdt64:
-    dq 0 ; Zero Entry
-.code: equ $ - gdt64
-    dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53) ; Code Segment
-.pointer:
-    dw $ - gdt64 - 1
-    dq gdt64
-
-; --- 64-BIT LAND ---
-
-section .text
+; --- 64-BIT TRAMPOLINE (Still in .boot section) ---
 bits 64
 long_mode_start:
-    ; Clear data segments (they are meaningless in 64-bit, but good practice)
+    ; This is now in 64-bit mode, but still in Low Memory code!
     mov ax, 0
     mov ss, ax
     mov ds, ax
@@ -158,6 +140,30 @@ long_mode_start:
     mov fs, ax
     mov gs, ax
 
-    ; Call the C Kernel
-    call kmain
+    ; Make the "Stratospheric Jump" to High Memory.
+    ; kmain is linked at 0xFFFFFFFF80..., so 'mov rax, kmain' loads that huge address.
+    mov rax, kmain
+    call rax
     hlt
+
+; --- DATA STRUCTURES (In .boot section) ---
+; Use 'times ... db 0' instead of 'resb' because this is a PROGBITS section, not BSS.
+align 4096
+page_table_l4:
+    times 4096 db 0
+page_table_l3:
+    times 4096 db 0
+page_table_l2:
+    times 4096 db 0
+stack_bottom:
+    times 16384 db 0 ; 16KB Stack
+stack_top:
+
+; --- GDT ---
+gdt64:
+    dq 0
+.code: equ $ - gdt64
+    dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53)
+.pointer:
+    dw $ - gdt64 - 1
+    dq gdt64
