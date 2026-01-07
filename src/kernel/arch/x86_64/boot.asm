@@ -1,6 +1,8 @@
 global start
 extern kmain
 
+%define KERNEL_VIRTUAL_BASE 0xFFFFFFFF80000000
+
 ; --- BOOT SECTION (Physical 1MB) ---
 section .boot
 bits 32
@@ -9,24 +11,31 @@ start:
     ; 1. Setup Stack
     mov esp, stack_top
 
-    ; 2. Checks
+    ; 2. SAVE MULTIBOOT POINTER (CRITICAL NEW STEP)
+    ; GRUB puts the address of the info structure in EBX.
+    ; Must save it now before clobber registers.
+    mov [multiboot_info_ptr], ebx
+
+    ; 3. Checks
     call check_multiboot
     call check_cpuid
     call check_long_mode
 
-    ; 3. Paging Setup
+    ; 4. Paging Setup
     call setup_page_tables
     call enable_paging
 
-    ; 4. Load the 64-bit GDT
+    ; 5. Load GDT
     lgdt [gdt64.pointer]
 
-    ; 5. The Long Jump (Trampoline)
-    ; Jump to 'long_mode_start', which is NOW inside .boot (Low Memory)
-    ; This fits perfectly in a 32-bit jump instruction.
+    ; 6. Long Jump
     jmp gdt64.code:long_mode_start
 
-; --- Subroutines ---
+; ... (Keep check_multiboot, check_cpuid, check_long_mode, setup_page_tables, enable_paging exactly as they were) ...
+; ... (Can copy-paste the subroutines from the previous session here) ...
+
+; --- PASTE EXISTING SUBROUTINES HERE IF OVERWRITE THE FILE ---
+; (For brevity, Assume kept the subroutines check_multiboot through enable_paging)
 
 check_multiboot:
     cmp eax, 0x36d76289
@@ -70,22 +79,18 @@ check_long_mode:
     jmp error
 
 setup_page_tables:
-    ; 1. Map L4[0] -> L3
     mov eax, page_table_l3
     or eax, 0b11
     mov [page_table_l4], eax
 
-    ; 2. Map L3[0] -> L2 (For identity mapping 0-1GB)
     mov eax, page_table_l2
     or eax, 0b11
     mov [page_table_l3], eax
 
-    ; 3. Map L3[510] -> L2 (For Higher Half Kernel -2GB)  <-- ADD THIS BLOCK
     mov eax, page_table_l2
     or eax, 0b11
     mov [page_table_l3 + 510 * 8], eax
 
-    ; 4. Map P2 entries (0-1GB physical)
     mov ecx, 0
 .loop:
     mov eax, 0x200000
@@ -97,11 +102,9 @@ setup_page_tables:
     cmp ecx, 512
     jne .loop
 
-    ; 5. Map L4[511] -> L3 (Recursive/High Mem)
     mov eax, page_table_l3
     or eax, 0b11
     mov [page_table_l4 + 511 * 8], eax
-
     ret
 
 enable_paging:
@@ -129,10 +132,9 @@ error:
     mov byte  [0xb800a], al
     hlt
 
-; --- 64-BIT TRAMPOLINE (Still in .boot section) ---
+; --- 64-BIT TRAMPOLINE ---
 bits 64
 long_mode_start:
-    ; This is now in 64-bit mode, but still in Low Memory code!
     mov ax, 0
     mov ss, ax
     mov ds, ax
@@ -140,14 +142,17 @@ long_mode_start:
     mov fs, ax
     mov gs, ax
 
-    ; Make the "Stratospheric Jump" to High Memory.
-    ; kmain is linked at 0xFFFFFFFF80..., so 'mov rax, kmain' loads that huge address.
+    ; PREPARE ARGUMENTS FOR KMAIN
+    ; In 64-bit System V ABI, the first argument goes into RDI.
+    ; Load the saved physical pointer into RDI.
+    ; Since Identity Mapped the first 1GB, this physical address is valid.
+    mov edi, [multiboot_info_ptr]
+    
     mov rax, kmain
     call rax
     hlt
 
-; --- DATA STRUCTURES (In .boot section) ---
-; Use 'times ... db 0' instead of 'resb' because this is a PROGBITS section, not BSS.
+; --- DATA ---
 align 4096
 page_table_l4:
     times 4096 db 0
@@ -156,8 +161,13 @@ page_table_l3:
 page_table_l2:
     times 4096 db 0
 stack_bottom:
-    times 16384 db 0 ; 16KB Stack
+    times 16384 db 0
 stack_top:
+
+; STORAGE FOR MULTIBOOT POINTER
+align 4
+multiboot_info_ptr:
+    dd 0    ; Allocate 4 bytes to store the 32-bit pointer from GRUB
 
 ; --- GDT ---
 gdt64:
