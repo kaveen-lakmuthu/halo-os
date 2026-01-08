@@ -6,13 +6,12 @@ SECTIONS {
 
     .boot :
     {
-        /* Define the physical start for the header */
         header_start = .;
         KEEP(*(.multiboot_header))
         *(.boot)
     }
 
-    /* 2. Higher Half Kernel */
+    /* 2. Higher Half Kernel Start */
     . += 0xFFFFFFFF80000000;
 
     .text : AT(ADDR(.boot) + SIZEOF(.boot))
@@ -25,10 +24,21 @@ SECTIONS {
         *(.rodata)
     }
 
+    /* --- THE FIX: DISCARD UNUSED SECTIONS --- */
+    /* This prevents .eh_frame from colliding with .data */
+    /DISCARD/ :
+    {
+        *(.eh_frame)
+        *(.comment)
+    }
+
     .data : AT(ADDR(.rodata) + SIZEOF(.rodata))
     {
         *(.data)
     }
+
+    /* 3. End of File (For Header.asm) */
+    kernel_file_end = . - 0xFFFFFFFF80000000;
 
     .bss : AT(ADDR(.data) + SIZEOF(.data))
     {
@@ -36,7 +46,6 @@ SECTIONS {
         *(.bss)
     }
 
-    /* CALCULATE PHYSICAL END */
-    /* Take current Virtual Address (.) and subtract the Offset */
+    /* 4. End of Memory (For kmain.c PMM safety) */
     kernel_physical_end = . - 0xFFFFFFFF80000000;
 }

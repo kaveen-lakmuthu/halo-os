@@ -12,7 +12,7 @@
 ## Epoch 2: The Foundation (Memory & Interrupts)
 * [ ] Global Descriptor Table (GDT).
 * [ ] Interrupt Descriptor Table (IDT).
-* [ ] Physical Memory Manager (Bitmap).
+* [x] Physical Memory Manager (Bitmap).
 * [ ] Virtual Memory Manager (Paging/Mapping).
 * [ ] Kernel Heap (kmalloc/kfree).
 * [ ] **Milestone:** Kernel can handle Page Faults without crashing.
