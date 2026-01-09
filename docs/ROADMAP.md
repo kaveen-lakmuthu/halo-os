@@ -10,7 +10,7 @@
 * [x] **Milestone:** Kernel boots and prints to Framebuffer in 64-bit mode.
 
 ## Epoch 2: The Foundation (Memory & Interrupts)
-* [ ] Global Descriptor Table (GDT).
+* [x] Global Descriptor Table (GDT).
 * [ ] Interrupt Descriptor Table (IDT).
 * [x] Physical Memory Manager (Bitmap).
 * [ ] Virtual Memory Manager (Paging/Mapping).
