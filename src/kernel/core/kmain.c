@@ -1,6 +1,7 @@
 #include "../drivers/vga.h"
 #include "../memory/pmm.h"
 #include "../arch/x86_64/gdt.h"
+#include "../arch/x86_64/idt.h"
 
 // Need the symbol from the linker script to know where the kernel ends
 extern uint64_t kernel_physical_end;
@@ -19,11 +20,15 @@ void kmain(uint64_t multiboot_addr) {
     terminal_initialize();
     terminal_writestring("Halo OS Kernel Initializing...\n");
 
-    // 1. Initialize GDT
+    // Initialize GDT
     gdt_init();
     terminal_writestring("[GDT] Global Descriptor Table Loaded.\n");
 
-    // 2. Initialize PMM
+    // IDT
+    idt_init();
+    terminal_writestring("[IDT] Interrupt Descriptor Table Loaded.\n");
+
+    // Initialize PMM
     extern uint64_t kernel_physical_end;
 
     // Pass the Multiboot pointer (to find RAM) and the kernel end (to protect ourselves)
@@ -47,7 +52,7 @@ void kmain(uint64_t multiboot_addr) {
     print_hex((uint64_t)page2);
     terminal_writestring("\n");
 
-    // 4. Test Freeing
+    // Test Freeing
     terminal_writestring("Freeing Frame 2...\n");
     pmm_free_frame(page2);
 

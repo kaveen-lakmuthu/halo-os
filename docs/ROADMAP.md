@@ -11,7 +11,7 @@
 
 ## Epoch 2: The Foundation (Memory & Interrupts)
 * [x] Global Descriptor Table (GDT).
-* [ ] Interrupt Descriptor Table (IDT).
+* [x] Interrupt Descriptor Table (IDT).
 * [x] Physical Memory Manager (Bitmap).
 * [ ] Virtual Memory Manager (Paging/Mapping).
 * [ ] Kernel Heap (kmalloc/kfree).
