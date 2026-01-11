@@ -2,66 +2,42 @@
 #include "../memory/pmm.h"
 #include "../arch/x86_64/gdt.h"
 #include "../arch/x86_64/idt.h"
-
-// Need the symbol from the linker script to know where the kernel ends
-extern uint64_t kernel_physical_end;
-
-// Helper to print hex numbers (naive implementation for now)
-void print_hex(uint64_t value) {
-    terminal_writestring("0x");
-    char hex_chars[] = "0123456789ABCDEF";
-    for (int i = 60; i >= 0; i -= 4) {
-        int nibble = (value >> i) & 0xF;
-        terminal_putchar(hex_chars[nibble]);
-    }
-}
+#include "../arch/x86_64/isr.h"
 
 void kmain(uint64_t multiboot_addr) {
+    // Silence compiler warning
+    (void)multiboot_addr;
+
     terminal_initialize();
     terminal_writestring("Halo OS Kernel Initializing...\n");
 
-    // Initialize GDT
+    // GDT
     gdt_init();
-    terminal_writestring("[GDT] Global Descriptor Table Loaded.\n");
+    terminal_writestring("[GDT] Loaded.\n");
 
     // IDT
     idt_init();
-    terminal_writestring("[IDT] Interrupt Descriptor Table Loaded.\n");
+    terminal_writestring("[IDT] Loaded.\n");
 
-    // Initialize PMM
-    extern uint64_t kernel_physical_end;
+    // ISR (Connect the gates)
+    isr_init();
+    terminal_writestring("[ISR] Handlers installed.\n");
 
-    // Pass the Multiboot pointer (to find RAM) and the kernel end (to protect ourselves)
-    // Note: kernel_physical_end is an address, need its value.
-    pmm_init(multiboot_addr, (uint64_t)&kernel_physical_end);
+    // // Enable Interrupts
+    // // "sti" stands for Set Interrupt Flag. The CPU will now listen to interrupts.
+    // __asm__ volatile ("sti"); 
+    // terminal_writestring("[CPU] Interrupts Enabled.\n");
 
-    // 3. Test Allocation
-    void* page1 = pmm_alloc_frame();
-    void* page2 = pmm_alloc_frame();
-    void* page3 = pmm_alloc_frame();
+    // THE TEST: Sabotage!
+    terminal_writestring("Testing Divide By Zero...\n");
+    volatile int a = 5;
+    volatile int b = 0;
+    volatile int c = a / b; 
 
-    terminal_writestring("Allocated Frame 3: ");
-    print_hex((uint64_t)page3);
-    terminal_writestring("\n");
+    (void)c;
 
-    terminal_writestring("Allocated Frame 1: ");
-    print_hex((uint64_t)page1); 
-    terminal_writestring("\n");
+    // Should never reach this line
+    terminal_writestring("If you see this, the test FAILED.\n");
 
-    terminal_writestring("Allocated Frame 2: ");
-    print_hex((uint64_t)page2);
-    terminal_writestring("\n");
-
-    // Test Freeing
-    terminal_writestring("Freeing Frame 2...\n");
-    pmm_free_frame(page2);
-
-    void* page4 = pmm_alloc_frame();
-    terminal_writestring("Allocated Frame 4 (Should match Frame 2): ");
-    print_hex((uint64_t)page4);
-    terminal_writestring("\n");
-
-    while(1) {
-        __asm__("hlt");
-    }
+    while(1) { __asm__("hlt"); }
 }
