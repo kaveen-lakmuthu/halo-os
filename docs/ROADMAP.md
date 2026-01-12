@@ -14,7 +14,7 @@
 * [x] Interrupt Descriptor Table (IDT) - Structure & Load.
 * [x] Interrupt Service Routine (ISRs) - Exception Handling.
 * [x] Physical Memory Manager (Bitmap).
-* [ ] Virtual Memory Manager (Paging/Mapping).
+* [X] Virtual Memory Manager (Paging/Mapping).
 * [ ] Kernel Heap (kmalloc/kfree).
 * [ ] **Milestone:** Kernel can handle Page Faults without crashing.
 
