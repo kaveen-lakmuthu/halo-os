@@ -19,7 +19,14 @@ struct gdt_ptr {
     uint64_t base;          // Address of the GDT
 } __attribute__((packed));
 
-// Function prototypes
+/**
+ * @brief Initialize the Global Descriptor Table (GDT).
+ *
+ * Sets up the GDT with null, kernel code, and kernel data segments.
+ * Loads the GDT pointer into the GDTR register.
+ *
+ * @return void
+ */
 void gdt_init(void);
 
 #endif

@@ -10,8 +10,17 @@ struct gdt_ptr gdt_pointer;
 // External assembly function to actually load the register
 extern void gdt_load(struct gdt_ptr* gdt_ptr);
 
-// Helper to fill an entry
-static void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
+/**
+ * @brief Set a GDT entry with the given parameters.
+ *
+ * @param[in] num    GDT entry index
+ * @param[in] base   Base address of the segment
+ * @param[in] limit  Size limit of the segment
+ * @param[in] access Access flags (Present, Ring, Code/Data)
+ * @param[in] gran   Granularity flags
+ */
+static void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit,
+                         uint8_t access, uint8_t gran) {
     gdt[num].base_low    = (base & 0xFFFF);
     gdt[num].base_middle = (base >> 16) & 0xFF;
     gdt[num].base_high   = (base >> 24) & 0xFF;

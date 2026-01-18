@@ -19,11 +19,14 @@
 * [ ] **Milestone:** Kernel can handle Page Faults without crashing.
 
 ## Epoch 3: The Hardware (Drivers)
+* [x] Programmable Interrupt Controller (PIC) Remapping.
+* [x] PS/2 Keyboard Driver (Scancodes -> ASCII).
+* [x] Basic Command Shell (Input Buffer).
+* [x] Shell commands (help, clear, reboot, theme, cpu).
 * [ ] ACPI Table Parsing (Finding hardware).
 * [ ] APIC Timer (High precision timer).
-* [ ] PS/2 Keyboard Driver.
 * [ ] Serial Port (Logging).
-* [ ] **Milestone:** Typing on the keyboard displays characters on screen.
+* [x] **Milestone:** Typing on the keyboard displays characters on screen.
 
 ## Epoch 4: The Multitasking (Processes)
 * [ ] Process Control Block (PCB) structure.

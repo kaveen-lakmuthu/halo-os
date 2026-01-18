@@ -7,6 +7,14 @@ struct idt_ptr idtr;
 // Assembly function to load the IDT
 extern void idt_load(struct idt_ptr* ptr);
 
+/**
+ * @brief Set an IDT gate (entry) for an interrupt handler.
+ *
+ * @param[in] n          IDT entry index (0-255)
+ * @param[in] handler    Address of the interrupt handler function
+ * @param[in] sel        Segment selector for the handler
+ * @param[in] type_attr  Type and attributes byte
+ */
 void idt_set_gate(int n, uint64_t handler, uint16_t sel, uint8_t type_attr) {
     idt[n].offset_low  = (uint16_t)handler;
     idt[n].selector    = sel;
@@ -17,6 +25,12 @@ void idt_set_gate(int n, uint64_t handler, uint16_t sel, uint8_t type_attr) {
     idt[n].zero        = 0;
 }
 
+/**
+ * @brief Initialize the Interrupt Descriptor Table (IDT).
+ *
+ * Sets up the IDT pointer and loads it into the IDTR register.
+ * Clears all IDT entries initially.
+ */
 void idt_init(void) {
     // 1. Set up the IDT Pointer
     idtr.base = (uint64_t)&idt;

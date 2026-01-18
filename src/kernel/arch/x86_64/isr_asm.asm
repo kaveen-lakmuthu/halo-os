@@ -110,6 +110,25 @@ ISR_NOERRCODE 29 ; Reserved
 ISR_ERRCODE   30 ; Security Exception
 ISR_NOERRCODE 31 ; Reserved
 
+; --- IRQ HANDLERS (Hardware Interrupts) ---
+; IRQ 0 = IDT 32, IRQ 1 = IDT 33, etc.
+ISR_NOERRCODE 32 ; Timer
+ISR_NOERRCODE 33 ; Keyboard
+ISR_NOERRCODE 34 ; Cascade
+ISR_NOERRCODE 35 ; COM2
+ISR_NOERRCODE 36 ; COM1
+ISR_NOERRCODE 37 ; LPT2
+ISR_NOERRCODE 38 ; Floppy
+ISR_NOERRCODE 39 ; LPT1
+ISR_NOERRCODE 40 ; CMOS
+ISR_NOERRCODE 41 ; Free
+ISR_NOERRCODE 42 ; Free
+ISR_NOERRCODE 43 ; Free
+ISR_NOERRCODE 44 ; Mouse
+ISR_NOERRCODE 45 ; FPU
+ISR_NOERRCODE 46 ; ATA Primary
+ISR_NOERRCODE 47 ; ATA Secondary
+
 ; --- THE TABLE OF POINTERS ---
 ; This allows C to just loop through 'isr_stub_table'
 section .data
@@ -119,3 +138,5 @@ isr_stub_table:
     dq isr8, isr9, isr10, isr11, isr12, isr13, isr14, isr15
     dq isr16, isr17, isr18, isr19, isr20, isr21, isr22, isr23
     dq isr24, isr25, isr26, isr27, isr28, isr29, isr30, isr31
+    dq isr32, isr33, isr34, isr35, isr36, isr37, isr38, isr39
+    dq isr40, isr41, isr42, isr43, isr44, isr45, isr46, isr47

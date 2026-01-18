@@ -22,10 +22,18 @@ struct interrupt_frame {
     uint64_t ss;          // Stack Segment Selector
 } __attribute__((packed));
 
-// The "Main" handler
+/**
+ * @brief Handle CPU exceptions and display error information.
+ *
+ * @param[in] frame Pointer to the interrupt frame with exception details
+ */
 void isr_handler(struct interrupt_frame* frame);
 
-// Initializer to register gates
+/**
+ * @brief Initialize interrupt service routines for exceptions.
+ *
+ * Sets up IDT gates for the first 32 CPU exceptions (Intel defined).
+ */
 void isr_init(void);
 
 #endif

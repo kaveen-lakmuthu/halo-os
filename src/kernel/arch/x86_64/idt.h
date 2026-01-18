@@ -20,8 +20,25 @@ struct idt_ptr {
     uint64_t base;             // Address of IDT array
 } __attribute__((packed));
 
+/**
+ * @brief Initialize the Interrupt Descriptor Table (IDT).
+ *
+ * Sets up the IDT pointer and loads it into the IDTR register.
+ * Clears all IDT entries initially.
+ *
+ * @return void
+ */
 void idt_init(void);
 
+/**
+ * @brief Set an IDT gate (entry) for an interrupt handler.
+ *
+ * @param[in] n          IDT entry index (0-255)
+ * @param[in] handler    Address of the interrupt handler function
+ * @param[in] sel        Segment selector for the handler
+ * @param[in] type_attr  Type and attributes byte
+ * @return void
+ */
 void idt_set_gate(int n, uint64_t handler, uint16_t sel, uint8_t type_attr);
 
 #endif

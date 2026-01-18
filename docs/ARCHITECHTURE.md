@@ -1,6 +1,6 @@
 # Halo OS - Architecture Specification
 
-* **Version:** 0.1 (Draft)
+* **Version:** 0.2 (Draft)
 * **Target Platform:** x86_64 (Intel/AMD 64-bit)
 * **Kernel Type:** Monolithic (Higher Half)
 
@@ -65,5 +65,71 @@ The system utilises a **Higher Half** kernel layout to strictly separate kernel 
     * Written in C++.
     * Communicates via Shared Memory buffers.
     * Double-buffered rendering to prevent tearing.
+
+---
+## 8. Current Implementation Status (v0.2)
+
+### Completed Components
+* **Boot & Initialization**
+  - Multiboot2 header and bootloader interface
+  - 32-bit to 64-bit long mode transition
+  - Higher-half kernel mapping at 0xFFFFFFFF80000000
+  - GDT (Global Descriptor Table) setup
+  - IDT (Interrupt Descriptor Table) with 48 handlers (0-47)
+
+* **Memory Management**
+  - Physical Memory Manager (PMM) with bitmap allocator
+    - Bitmap located at 0x500000 (5MB mark)
+    - Supports up to 1GB memory (configurable to 4GB)
+    - Parses Multiboot2 memory map
+  - Virtual Memory Manager (VMM) with 4-level paging
+    - Identity mapping for first 128MB
+    - Higher-half mapping at kernel base
+    - Dynamic page table allocation via PMM
+
+* **Interrupt Handling**
+  - All 32 CPU exceptions properly handled
+  - Hardware IRQ support (remapped to vectors 32-47)
+  - PIC (Programmable Interrupt Controller) remapping
+  - Proper exception reporting with RIP, error code, and type
+
+* **Drivers**
+  - VGA text mode driver (80x25)
+    - Color support with foreground/background
+    - Scrolling implementation
+    - Backspace support
+    - Hex number printing
+  - PS/2 Keyboard driver
+    - Scancode Set 1 to ASCII translation
+    - US keyboard layout
+    - Input buffering (256 character buffer)
+    - Command-ready flag for shell integration
+
+* **User Interface**
+  - Interactive command shell
+  - Implemented commands:
+    - `help` - Display available commands
+    - `clear` - Clear screen
+    - `about` - Show OS version and author
+    - `reboot` - Restart the system via keyboard controller
+    - `theme matrix` - Green on black color scheme
+    - `theme blue` - White on blue color scheme
+    - `theme error` - Red on black color scheme
+    - `cpu` - Display CPU vendor ID via CPUID
+
+### Known Limitations
+* PMM currently supports maximum 1GB RAM (can be extended to 4GB)
+* No kernel heap allocator (kmalloc/kfree) yet
+* Keyboard driver doesn't support Shift/Caps Lock modifiers
+* No support for extended/multimedia keys
+* Shell doesn't support command history or line editing
+* No serial port driver for debugging output
+
+### Next Steps (Epoch 4)
+* Implement kernel heap allocator
+* Add process control blocks (PCB)
+* Implement context switching
+* Create basic scheduler (round-robin)
+* Add syscall interface
 
 ---
