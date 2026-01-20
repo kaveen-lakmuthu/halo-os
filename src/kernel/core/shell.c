@@ -1,5 +1,6 @@
 #include "shell.h"
 #include "../drivers/vga.h"
+#include "../drivers/ata.h"
 #include "../drivers/keyboard.h"
 #include "../arch/x86_64/io.h"
 #include "../arch/x86_64/cpuid.h"
@@ -78,6 +79,44 @@ void shell_execute(void) {
     // --- EXISTING COMMANDS ---
     else if (strcmp(keyboard_buffer, "clear") == 0) {
         terminal_initialize();
+    }
+
+    // --- DISK COMMAND ---
+    else if (strcmp(keyboard_buffer, "disk") == 0) {
+        terminal_writestring("Identifying Drive...\n");
+        ata_identify_drive();
+
+        // Create a buffer for 1 sector (512 bytes)
+        uint8_t sector_buf[512];
+        // Zero it out first to be sure
+        for(int i=0; i<512; i++) sector_buf[i] = 0;
+
+        terminal_writestring("Reading Sector 0 (MBR)...\n");
+        ata_read_sector(0, sector_buf);
+
+        terminal_writestring("First 16 bytes: ");
+        char hex[] = "0123456789ABCDEF";
+        for (int i = 0; i < 16; i++) {
+            terminal_putchar(hex[(sector_buf[i] >> 4) & 0xF]);
+            terminal_putchar(hex[sector_buf[i] & 0xF]);
+            terminal_putchar(' ');
+        }
+        terminal_writestring("\n");
+    }
+    // --- NEW: DISK WRITE COMMAND ---
+    else if (strcmp(keyboard_buffer, "disk write") == 0) {
+        terminal_writestring("Writing to Sector 0...\n");
+        uint8_t sector_buf[512];
+        // 1. Fill buffer with a pattern
+        const char* msg = "HALO OS ROCKS";
+        for (int i = 0; i < 512; i++) sector_buf[i] = 0; // Clear
+        for (int i = 0; msg[i] != 0; i++) sector_buf[i] = msg[i];
+        // 2. Add the MBR Signature (0x55AA at the very end)
+        sector_buf[510] = 0x55;
+        sector_buf[511] = 0xAA;
+        // 3. Write to Disk
+        ata_write_sector(0, sector_buf);
+        terminal_writestring("Write Complete.\n");
     }
     else if (strcmp(keyboard_buffer, "about") == 0) {
         terminal_writestring("Halo OS v0.2\n");

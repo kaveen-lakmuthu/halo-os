@@ -49,7 +49,7 @@ distro/halo-os.iso: build/kernel.bin
 	@grub-mkrescue -o distro/halo-os.iso distro 2> /dev/null
 
 run: distro/halo-os.iso
-	@qemu-system-x86_64 -cdrom distro/halo-os.iso -m 2G -serial stdio
+	@qemu-system-x86_64 -cdrom distro/halo-os.iso -hda disk.img -boot d -m 2G -serial stdio
 
 clean:
 	rm -rf build distro/halo-os.iso distro/boot/kernel.bin
